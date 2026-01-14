@@ -16,6 +16,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { collection } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Edit } from 'lucide-react';
 
 const statusVariantMap = {
   available: 'outline',
@@ -25,11 +28,16 @@ const statusVariantMap = {
 
 export default function AdminBikesPage() {
   const firestore = useFirestore();
+  const router = useRouter();
   const bikesQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'bikes') : null),
     [firestore]
   );
   const { data: bikes } = useCollection<Bike>(bikesQuery);
+  
+  const handleEdit = (bikeId: string) => {
+    router.push(`/admin/bikes/manage?id=${bikeId}`);
+  }
 
   return (
     <Card>
@@ -43,6 +51,7 @@ export default function AdminBikesPage() {
               <TableHead>Bike ID</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Station</TableHead>
+              <TableHead><span className="sr-only">Actions</span></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -58,6 +67,12 @@ export default function AdminBikesPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>{bike.station}</TableCell>
+                <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => handleEdit(bike.id)}>
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Edit Bike</span>
+                    </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

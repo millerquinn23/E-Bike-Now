@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bike, History, LayoutDashboard, Users, PanelLeft } from 'lucide-react';
+import { Bike, History, LayoutDashboard, Users, PanelLeft, PlusCircle } from 'lucide-react';
 import {
   SidebarProvider,
   Sidebar,
@@ -41,7 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {menuItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <Link href={item.href} legacyBehavior passHref>
-                  <SidebarMenuButton isActive={pathname === item.href}>
+                  <SidebarMenuButton isActive={pathname.startsWith(item.href)}>
                     <item.icon />
                     <span>{item.label}</span>
                   </SidebarMenuButton>
@@ -59,11 +59,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
-            <SidebarTrigger className="md:hidden" />
-            <h1 className="text-lg font-semibold md:text-2xl font-headline">
-                {menuItems.find(item => pathname.startsWith(item.href))?.label || 'Admin'}
-            </h1>
+        <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
+            <div className="flex items-center gap-4">
+                <SidebarTrigger className="md:hidden" />
+                <h1 className="text-lg font-semibold md:text-2xl font-headline">
+                    {menuItems.find(item => pathname.startsWith(item.href))?.label || 'Admin'}
+                </h1>
+            </div>
+            {pathname.startsWith('/admin/bikes') && (
+                <Button asChild size="sm" className="gap-1">
+                    <Link href="/admin/bikes/manage">
+                        <PlusCircle className="h-3.5 w-3.5" />
+                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                          Add Bike
+                        </span>
+                    </Link>
+                </Button>
+            )}
         </header>
         <main className="flex-1 p-4 lg:p-6">{children}</main>
       </SidebarInset>
