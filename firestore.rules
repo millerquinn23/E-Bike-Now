@@ -1,0 +1,39 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuth() && request.auth.token.admin == true;
+    }
+
+    // All users can read bikes
+    match /bikes/{bikeId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // Users can read/write their own profile
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // Users can read/write their own rentals
+    match /rentals/{rentalId} {
+      allow read, write: if (isAuth() && resource.data.userId == request.auth.uid) || isAdmin();
+    }
+
+    // Catch-all for any other collections to ensure admins have access
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

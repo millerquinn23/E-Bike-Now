@@ -1,0 +1,103 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's public profile information.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The user's unique ID."
+        },
+        "name": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        }
+      },
+      "required": ["uid", "name", "email"]
+    },
+    "Bike": {
+      "title": "Bike",
+      "description": "Represents an e-bike available for rent.",
+      "type": "object",
+      "properties": {
+        "bikeId": {
+          "type": "string",
+          "description": "The unique identifier for the bike."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["available", "rented", "locked"],
+          "description": "The current status of the bike."
+        },
+        "station": {
+          "type": "string",
+          "description": "The station where the bike is located."
+        }
+      },
+      "required": ["bikeId", "status", "station"]
+    },
+    "Rental": {
+      "title": "Rental",
+      "description": "Represents a single rental transaction.",
+      "type": "object",
+      "properties": {
+        "rentalId": {
+          "type": "string",
+          "description": "The unique identifier for the rental."
+        },
+        "bikeId": {
+          "type": "string",
+          "description": "The ID of the rented bike."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who rented the bike."
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The start time of the rental."
+        },
+        "endTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The end time of the rental."
+        },
+        "price": {
+          "type": "number",
+          "description": "The total price of the rental."
+        }
+      },
+      "required": ["rentalId", "bikeId", "userId", "startTime"]
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Stores user profile information."
+    },
+    "/bikes/{bikeId}": {
+      "schema": {
+        "$ref": "#/entities/Bike"
+      },
+      "description": "Stores information about available bikes."
+    },
+    "/rentals/{rentalId}": {
+      "schema": {
+        "$ref": "#/entities/Rental"
+      },
+      "description": "Stores rental transaction records."
+    }
+  }
+}
