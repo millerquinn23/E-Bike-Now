@@ -14,10 +14,10 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
-import { useAuth, useUser, initiateEmailSignUp, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useUser, setDocumentNonBlocking } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { doc, getFirestore } from 'firebase/firestore';
-import { updateProfile } from 'firebase/auth';
+import { updateProfile, createUserWithEmailAndPassword } from 'firebase/auth';
 import { Loader2 } from 'lucide-react';
 
 export function SignUpForm() {
@@ -51,9 +51,9 @@ export function SignUpForm() {
     }
     setIsSubmitting(true);
     try {
-      // This is one of the few places we *do* need to await an auth result
+      // This is one of the few places we do need to await an auth result
       // because we need the user object to proceed.
-      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
 
       // Update Firebase Auth profile
@@ -86,7 +86,7 @@ export function SignUpForm() {
     }
   };
   
-  if (isUserLoading) {
+  if (isUserLoading || user) {
       return (
           <div className="flex justify-center items-center min-h-[200px]">
               <Loader2 className="h-8 w-8 animate-spin" />

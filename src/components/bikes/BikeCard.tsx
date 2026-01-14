@@ -12,8 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Bike } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, writeBatch, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
@@ -67,10 +67,25 @@ export function BikeCard({ bike }: BikeCardProps) {
       endTime: null,
       price: null,
     };
+    
+    // Create a new rental ID for both writes
+    const newRentalRef = doc(collection(firestore, 'rentals'));
+
+    const batch = writeBatch(firestore);
+
+    // 1. Create rental doc in top-level /rentals
+    batch.set(newRentalRef, rentalData);
+
+    // 2. Create rental doc in user's subcollection /users/{uid}/rentals
+    const userRentalRef = doc(collection(firestore, 'users', user.uid, 'rentals'), newRentalRef.id);
+    batch.set(userRentalRef, rentalData);
+    
+    // 3. Update the bike's status to 'rented'
+    const bikeRef = doc(firestore, 'bikes', bike.id);
+    batch.update(bikeRef, { status: 'rented' });
 
     try {
-      const userRentalsRef = collection(firestore, 'users', user.uid, 'rentals');
-      await addDocumentNonBlocking(userRentalsRef, rentalData);
+      await batch.commit();
 
       toast({
         title: 'Rental Started!',
@@ -79,6 +94,15 @@ export function BikeCard({ bike }: BikeCardProps) {
       router.push('/rentals');
     } catch (error) {
        // Non-blocking functions handle their own errors via the emitter
+       // In this case since we are using a batch, we can't use the non-blocking helpers
+       // so we'll just log the error for now. A more robust solution would be needed
+       // for production to use the error emitter.
+       console.error("Error starting rental:", error);
+       toast({
+         variant: 'destructive',
+         title: 'Uh oh! Something went wrong.',
+         description: 'Could not start the rental.',
+       });
     }
   };
 
