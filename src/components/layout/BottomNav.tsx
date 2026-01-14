@@ -21,6 +21,12 @@ export function BottomNav() {
   const { user } = useUser();
 
 
+  const handleLogout = () => {
+    auth.signOut().then(() => {
+      router.push('/login');
+    });
+  };
+
   return (
     <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm h-16 bg-background border-t rounded-b-2xl">
       <div className="grid h-full grid-cols-4 mx-auto font-medium">

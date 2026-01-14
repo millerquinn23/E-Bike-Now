@@ -56,7 +56,7 @@ export default function RentalsPage() {
 
   return (
     <Card className="m-0 border-0 shadow-none rounded-none">
-      <CardHeader>
+      <CardHeader className="px-4 pt-4">
         <CardTitle className="font-headline text-2xl">My Rentals</CardTitle>
         <CardDescription>A history of your e-bike journeys.</CardDescription>
       </CardHeader>

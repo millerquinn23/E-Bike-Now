@@ -39,8 +39,9 @@ export function PublicHeader() {
 
 
   const handleLogout = () => {
-    auth.signOut();
-    router.push('/login');
+    auth.signOut().then(() => {
+      router.push('/login');
+    });
   };
 
   const renderUserMenu = () => {
@@ -81,11 +82,20 @@ export function PublicHeader() {
       );
     }
 
-    return null;
+    return (
+        <div className="flex items-center gap-2">
+            <Button asChild variant="ghost">
+                <Link href="/login">Login</Link>
+            </Button>
+            <Button asChild>
+                <Link href="/signup">Sign Up</Link>
+            </Button>
+        </div>
+    );
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full rounded-t-xl border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/estimate" className="mr-6 flex items-center space-x-2">
@@ -142,12 +152,6 @@ export function PublicHeader() {
                     {link.label}
                   </Link>
                 ))}
-                 {!user && (
-                  <>
-                    <Link href="/login" className="text-foreground/60 transition-colors hover:text-foreground/80">Login</Link>
-                    <Link href="/signup" className="text-foreground/60 transition-colors hover:text-foreground/80">Sign Up</Link>
-                  </>
-                )}
               </div>
             </div>
           </SheetContent>

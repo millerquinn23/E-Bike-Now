@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2 } from 'lucide-react';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+
 
 export default function AccountPage() {
   const { user, isUserLoading } = useUser();
@@ -46,7 +48,7 @@ export default function AccountPage() {
 
       // Update Firestore document (non-blocking)
       const userRef = doc(firestore, 'users', user.uid);
-      updateDocumentNonBlocking(userRef, { name });
+      updateDocumentNonBlocking(userRef, { name }, { merge: true });
 
       toast({
         title: 'Profile Updated',
