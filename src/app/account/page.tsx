@@ -19,6 +19,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2 } from 'lucide-react';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 export default function AccountPage() {
@@ -29,6 +31,8 @@ export default function AccountPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  const userAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar-1')?.imageUrl;
 
   useEffect(() => {
     if (user) {
@@ -70,7 +74,8 @@ export default function AccountPage() {
     return (
       <div className="p-4">
         <Card className="m-0 border-0 shadow-none rounded-none">
-          <CardHeader className="px-0">
+          <CardHeader className="px-0 items-center text-center">
+            <Skeleton className="h-24 w-24 rounded-full mb-2" />
             <Skeleton className="h-8 w-1/2" />
             <Skeleton className="h-4 w-3/4" />
           </CardHeader>
@@ -95,7 +100,11 @@ export default function AccountPage() {
   return (
     <div className="p-4">
       <Card className="m-0 border-0 shadow-none rounded-none">
-        <CardHeader className="px-0 pt-0">
+        <CardHeader className="px-0 pt-0 items-center text-center">
+            <Avatar className="w-24 h-24 mb-2">
+                <AvatarImage src={user?.photoURL || userAvatar} alt={user?.displayName || 'User'} />
+                <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+            </Avatar>
           <CardTitle className="font-headline text-2xl">My Profile</CardTitle>
           <CardDescription>
             Manage your account settings and personal information.
