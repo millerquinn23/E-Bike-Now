@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Timer, CircleDollarSign, Lock, Play, Square } from 'lucide-react';
+import { Timer, CircleDollarSign, Lock, Play, Square, Bike } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function HomePage() {
@@ -75,7 +75,8 @@ export default function HomePage() {
               Ready for a ride?
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col items-center gap-6">
+            <Bike className="w-24 h-24 text-primary/80" />
             <Button size="lg" className="w-full" onClick={handleStartRide}>
               <Play className="mr-2" />
               Start Ride
