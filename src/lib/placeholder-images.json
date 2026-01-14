@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "ebike-1",
+      "description": "A modern e-bike parked on a city street.",
+      "imageUrl": "https://images.unsplash.com/photo-1585160298806-a895c4654b0b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxlYmlrZSUyMGNpdHl8ZW58MHx8fHwxNzY4Mjg5MzExfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ebike city"
+    },
+    {
+      "id": "ebike-2",
+      "description": "An e-bike against a vibrant wall.",
+      "imageUrl": "https://images.unsplash.com/photo-1641988496960-32c9564454bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxlYmlrZSUyMHN0cmVldGFydHxlbnwwfHx8fDE3NjgzNzMzNTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ebike streetart"
+    },
+    {
+      "id": "ebike-3",
+      "description": "Close up of an e-bike handlebar.",
+      "imageUrl": "https://images.unsplash.com/photo-1615373615964-389b41cda0a7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxlYmlrZSUyMGRldGFpbHxlbnwwfHx8fDE3NjgzNzMzNTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ebike detail"
+    },
+    {
+      "id": "ebike-hero",
+      "description": "A person riding an e-bike through a park.",
+      "imageUrl": "https://images.unsplash.com/photo-1760588774830-2a9f3bf4965d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxlYmlrZSUyMHBhcmt8ZW58MHx8fHwxNzY4MzA4MzU3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ebike park"
+    },
+    {
+      "id": "user-avatar-1",
+      "description": "Avatar for user Alice.",
+      "imageUrl": "https://images.unsplash.com/photo-1557053908-4793c484d06f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx3b21hbiUyMHBvcnRyYWl0fGVufDB8fHx8MTc2ODMzNTg3OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman portrait"
+    },
+    {
+      "id": "user-avatar-2",
+      "description": "Avatar for user Bob.",
+      "imageUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjgyNTQ3NzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man portrait"
+    }
+  ]
 }
