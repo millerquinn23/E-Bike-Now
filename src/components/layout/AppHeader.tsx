@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Bike, CircleUser } from 'lucide-react';
+import { Bike, CircleUser, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth, useDoc, useFirestore, useUser } from '@/firebase';
+import { useAuth, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
 import { doc } from 'firebase/firestore';
@@ -23,7 +23,10 @@ export function AppHeader() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
-  const adminRef = user && firestore ? doc(firestore, 'roles_admin', user.uid) : null;
+  const adminRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, 'roles_admin', user.uid) : null),
+    [user, firestore]
+  );
   const { data: admin } = useDoc<Admin>(adminRef);
   const isAdmin = !!admin;
 
@@ -63,23 +66,14 @@ export function AppHeader() {
               <DropdownMenuItem asChild>
                 <Link href="/account">Profile</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+               <DropdownMenuItem asChild>
                 <Link href="/rentals">My Rentals</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost">
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">Sign Up</Link>
-            </Button>
-          </div>
-        )}
+        ) : null}
       </div>
     </header>
   );
