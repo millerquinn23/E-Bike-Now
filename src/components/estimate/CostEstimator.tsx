@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { useFormState } from 'react-dom';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -26,6 +25,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Clock, Milestone, TrendingUp, CircleDollarSign, Lightbulb, Loader2 } from 'lucide-react';
+import { Skeleton } from '../ui/skeleton';
 
 const formSchema = z.object({
   rentalTimeMinutes: z.coerce.number().min(1, 'Rental time must be at least 1 minute.'),
@@ -40,6 +40,11 @@ type FormSchema = z.infer<typeof formSchema>;
 export function CostEstimator() {
   const [result, setResult] = useState<EstimateRideCostOutput | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -62,6 +67,34 @@ export function CostEstimator() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+  
+  if (!isMounted) {
+    return (
+        <Card className="w-full max-w-lg mx-auto">
+            <CardHeader>
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-20 w-full" />
+                </div>
+            </CardContent>
+             <CardFooter>
+                <Skeleton className="h-10 w-full" />
+            </CardFooter>
+        </Card>
+    );
   }
 
   return (
