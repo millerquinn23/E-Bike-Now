@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 export default function EstimatePage() {
   return (
-    <div className="relative container flex min-h-[calc(100vh-10rem)] items-center justify-center py-12">
+    <div className="relative container flex min-h-[calc(100vh-10rem)] items-center justify-center py-8">
       <Image
         src="https://picsum.photos/seed/ebikehero/1200/600"
         alt="E-bike rider in a park"

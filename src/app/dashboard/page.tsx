@@ -19,11 +19,11 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4">
-      <h1 className="mb-6 font-headline text-3xl tracking-tight">
+      <h1 className="mb-4 font-headline text-2xl tracking-tight">
         Available Bikes
       </h1>
       {isLoading && (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {[...Array(4)].map((_, i) => (
                 <div key={i} className="flex flex-col space-y-3">
                     <Skeleton className="h-[125px] w-full rounded-xl" />
@@ -36,7 +36,7 @@ export default function DashboardPage() {
         </div>
       )}
       {bikes && bikes.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {bikes.map((bike) => (
             <BikeCard key={bike.id} bike={bike} />
           ))}

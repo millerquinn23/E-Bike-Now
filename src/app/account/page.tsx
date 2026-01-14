@@ -66,7 +66,7 @@ export default function AccountPage() {
 
   if (isUserLoading) {
     return (
-      <Card className="m-4">
+      <Card className="m-0 border-0 shadow-none rounded-none">
         <CardHeader>
           <Skeleton className="h-8 w-1/2" />
           <Skeleton className="h-4 w-3/4" />
@@ -89,9 +89,9 @@ export default function AccountPage() {
   }
 
   return (
-    <Card className="m-4">
+    <Card className="m-0 border-0 shadow-none rounded-none">
       <CardHeader>
-        <CardTitle className="font-headline text-3xl">My Profile</CardTitle>
+        <CardTitle className="font-headline text-2xl">My Profile</CardTitle>
         <CardDescription>
           Manage your account settings and personal information.
         </CardDescription>

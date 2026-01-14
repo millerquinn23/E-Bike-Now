@@ -55,52 +55,45 @@ export default function RentalsPage() {
   const isLoadingData = isUserLoading || isLoading;
 
   return (
-    <Card className="m-4">
+    <Card className="m-0 border-0 shadow-none rounded-none">
       <CardHeader>
-        <CardTitle className="font-headline text-3xl">My Rentals</CardTitle>
+        <CardTitle className="font-headline text-2xl">My Rentals</CardTitle>
         <CardDescription>A history of your e-bike journeys.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Bike ID</TableHead>
-              <TableHead>Start Time</TableHead>
-              <TableHead>End Time</TableHead>
-              <TableHead className="text-right">Cost</TableHead>
+              <TableHead className="px-4">Bike</TableHead>
+              <TableHead className="px-4">End Time</TableHead>
+              <TableHead className="text-right px-4">Cost</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoadingData ? (
               [...Array(3)].map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell>
+                  <TableCell className="px-4">
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell className="px-4">
                     <Skeleton className="h-4 w-24" />
                   </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-40" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-40" />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Skeleton className="h-4 w-16 ml-auto" />
+                  <TableCell className="text-right px-4">
+                    <Skeleton className="h-4 w-12 ml-auto" />
                   </TableCell>
                 </TableRow>
               ))
             ) : userRentals && userRentals.length > 0 ? (
               userRentals.map((rental: Rental) => (
                 <TableRow key={rental.id}>
-                  <TableCell className="font-medium">{rental.bikeId}</TableCell>
-                  <TableCell>
-                    {format(rental.startTime.toDate(), 'PPpp')}
-                  </TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium px-4">{rental.bikeId}</TableCell>
+                  <TableCell className="px-4">
                     {rental.endTime
-                      ? format(rental.endTime.toDate(), 'PPpp')
+                      ? format(rental.endTime.toDate(), 'P')
                       : 'In Progress'}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right px-4">
                     {calculateCost(
                       rental.startTime.toDate(),
                       rental.endTime ? rental.endTime.toDate() : null
