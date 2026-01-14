@@ -13,10 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth, useUser, initiateEmailSignIn } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export function LoginForm() {
   const router = useRouter();
@@ -33,7 +34,7 @@ export function LoginForm() {
     }
   }, [user, isUserLoading, router]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
         toast({
@@ -44,7 +45,23 @@ export function LoginForm() {
         return;
     }
     setIsSubmitting(true);
-    initiateEmailSignIn(auth, email, password);
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        // On success, the useEffect will handle redirection
+    } catch(error: any) {
+        console.error("Login failed:", error.code, error.message);
+        let description = "An unexpected error occurred.";
+        if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+            description = "Invalid email or password. Please try again.";
+        }
+        toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description: description,
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   if (isUserLoading || user) {
