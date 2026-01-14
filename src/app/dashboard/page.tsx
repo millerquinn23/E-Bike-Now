@@ -18,12 +18,12 @@ export default function DashboardPage() {
   const { data: bikes, isLoading } = useCollection<Bike>(bikesQuery);
 
   return (
-    <div className="p-4">
-      <h1 className="mb-4 font-headline text-2xl tracking-tight">
+    <div>
+      <h1 className="mb-4 font-headline text-2xl tracking-tight px-4 pt-4">
         Available Bikes
       </h1>
       {isLoading && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 px-4">
             {[...Array(4)].map((_, i) => (
                 <div key={i} className="flex flex-col space-y-3">
                     <Skeleton className="h-[125px] w-full rounded-xl" />
@@ -36,13 +36,13 @@ export default function DashboardPage() {
         </div>
       )}
       {bikes && bikes.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 px-4">
           {bikes.map((bike) => (
             <BikeCard key={bike.id} bike={bike} />
           ))}
         </div>
       ) : (
-        !isLoading && <p>No bikes available at the moment.</p>
+        !isLoading && <p className="px-4">No bikes available at the moment.</p>
       )}
     </div>
   );
