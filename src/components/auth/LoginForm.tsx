@@ -49,7 +49,6 @@ export function LoginForm() {
         await signInWithEmailAndPassword(auth, email, password);
         // On success, the useEffect will handle redirection
     } catch(error: any) {
-        console.error("Login failed:", error.code, error.message);
         let description = "An unexpected error occurred.";
         if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
             description = "Invalid email or password. Please try again.";

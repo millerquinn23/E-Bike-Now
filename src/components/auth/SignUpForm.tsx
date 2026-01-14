@@ -14,9 +14,9 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
-import { useAuth, useUser, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useUser, setDocumentNonBlocking, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { doc, getFirestore } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import { updateProfile, createUserWithEmailAndPassword } from 'firebase/auth';
 import { Loader2 } from 'lucide-react';
 
@@ -24,7 +24,7 @@ export function SignUpForm() {
   const router = useRouter();
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
-  const firestore = getFirestore(auth.app);
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const [name, setName] = useState('');
@@ -75,7 +75,6 @@ export function SignUpForm() {
 
       // Redirection is handled by the useEffect
     } catch (error: any) {
-        console.error(error);
         toast({
             variant: "destructive",
             title: "Sign up failed",
