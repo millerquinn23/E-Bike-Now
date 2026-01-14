@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Home, History, User, LogOut, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
@@ -24,6 +24,7 @@ const mainNavLinks = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const auth = useAuth();
   const firestore = useFirestore();
   const { user } = useUser();
@@ -37,6 +38,7 @@ export function BottomNav() {
 
   const handleLogout = () => {
     auth.signOut();
+    router.push('/login');
   };
 
   return (
