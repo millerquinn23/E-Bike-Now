@@ -40,8 +40,8 @@ export default function AdminUsersPage() {
           </TableHeader>
           <TableBody>
             {users?.map((user: User) => (
-              <TableRow key={user.uid}>
-                <TableCell className="font-medium">{user.uid}</TableCell>
+              <TableRow key={user.id}>
+                <TableCell className="font-medium">{user.id}</TableCell>
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
               </TableRow>

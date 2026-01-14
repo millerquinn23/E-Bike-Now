@@ -62,7 +62,7 @@ export function SignUpForm() {
       // Create user document in Firestore
       const userRef = doc(firestore, "users", firebaseUser.uid);
       const userData = {
-          uid: firebaseUser.uid,
+          id: firebaseUser.uid,
           name: name,
           email: email,
       };
