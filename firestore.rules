@@ -111,10 +111,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description The admin role collection is read-only from clients to prevent privilege escalation.
+     * @description Admins can check for their own role, but cannot write or list roles.
      */
     match /roles_admin/{userId} {
-      allow read, write: if false;
+      allow get: if isOwner(userId);
+      allow list, write: if false;
     }
 
     /**
