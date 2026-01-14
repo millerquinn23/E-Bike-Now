@@ -61,6 +61,7 @@ service cloud.firestore {
 
     /**
      * Returns true if the user has an admin role document.
+     * This is the correct, full path for the exists() function.
      */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
@@ -72,13 +73,6 @@ service cloud.firestore {
      */
     function isExistingDocument() {
       return resource != null;
-    }
-
-    /**
-     * Returns true if the user is an admin and the document exists.
-     */
-    function isExistingAdmin() {
-      return isAdmin() && isExistingDocument();
     }
 
     /**
@@ -102,78 +96,42 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
 
     /**
-     * @description Users can create their own profile and manage only their own data. Admins can read all profiles.
-     * @path /users/{userId}
-     * @allow (create) a signed-in user with auth.uid 'user123' can create the document /users/user123.
-     * @deny (list) any non-admin user attempting to list all documents in the /users collection.
-     * @principle Restricts access to a user's own data tree, but allows admin oversight.
+     * @description Users can create and manage their own profile. Admins can read/write all profiles.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin();
+      allow read, write: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) && isExistingDocument() && request.resource.data.id == resource.data.id;
-      allow delete: if isOwner(userId) && isExistingDocument();
-
+      
       /**
        * @description A user can manage their own rentals within their own user space.
-       * @path /users/{userId}/rentals/{rentalId}
-       * @allow (list) a user with auth.uid 'user123' can list documents at /users/user123/rentals.
-       * @deny (get) a user with auth.uid 'user456' cannot read /users/user123/rentals/rental_abc.
-       * @principle Enforces data privacy by scoping reads to the authenticated user's path.
        */
       match /rentals/{rentalId} {
-        allow get: if isOwner(userId) || isAdmin();
-        allow list: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId) && request.resource.data.userId == userId;
-        allow update: if isOwner(userId) && isExistingDocument() && request.resource.data.userId == resource.data.userId;
-        allow delete: if isOwner(userId) && isExistingDocument();
+        allow read, list, write: if isOwner(userId) || isAdmin();
       }
     }
 
     /**
-     * @description The admin role collection is a lookup table, not client-writable.
-     * @path /roles_admin/{userId}
-     * @allow (none) no client-side operations are permitted.
-     * @deny (create, update, delete) any user attempting to modify their own roles.
-     * @principle Prevents privilege escalation by securing role assignments.
+     * @description The admin role collection is read-only from clients to prevent privilege escalation.
      */
     match /roles_admin/{userId} {
-      allow get: if false;
-      allow list: if false;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow read, write: if false;
     }
 
     /**
      * @description Bike data is public for viewing, but only admins can manage the inventory.
-     * @path /bikes/{bikeId}
-     * @allow (list) any user, including unauthenticated ones, can list all available bikes.
-     * @deny (create) a regular, non-admin user cannot add a new bike to the collection.
-     * @principle Provides public read access while restricting writes to privileged roles.
      */
     match /bikes/{bikeId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if isAdmin();
-      allow update: if isExistingAdmin();
-      allow delete: if isExistingAdmin();
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     /**
-     * @description The master rentals collection allows users to manage their own rentals but not see others'. Admins can list all.
-     * @path /rentals/{rentalId}
-     * @allow (create) any signed-in user can create a rental document for themselves.
-     * @deny (list) any non-admin user attempting to list documents from this collection to prevent data leakage.
-     * @principle Enforces document ownership for writes and disables listing for non-admins on mixed-privacy collections.
+     * @description Master rentals collection. Users can create their own rentals. Admins can manage all.
      */
     match /rentals/{rentalId} {
-      allow get: if isDocumentOwner(resource) || isAdmin();
-      allow list: if isAdmin();
+      allow read, write: if isExistingDocumentOwner(resource) || isAdmin();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if (isExistingDocumentOwner(resource) || isAdmin()) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingDocumentOwner(resource) || isAdmin();
+      allow list: if isAdmin();
     }
   }
 }
