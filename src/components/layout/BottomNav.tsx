@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Calculator, User, MessageCircle } from 'lucide-react';
+import { Home, Calculator, User, MessageCircle, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const mainNavLinks = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/estimate', label: 'Estimate', icon: Calculator },
+  { href: '/rentals', label: 'Rentals', icon: History },
   { href: '/chatbot', label: 'Chatbot', icon: MessageCircle },
-  { href: '/account', label: 'Account', icon: User },
 ];
 
 export function BottomNav() {

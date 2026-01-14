@@ -11,14 +11,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useDoc, useFirestore, useUser } from '@/firebase';
 import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
+import { doc } from 'firebase/firestore';
+import type { Admin } from '@/lib/types';
 
 export function AppHeader() {
   const router = useRouter();
   const auth = useAuth();
+  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+
+  const adminRef = user && firestore ? doc(firestore, 'roles_admin', user.uid) : null;
+  const { data: admin } = useDoc<Admin>(adminRef);
+  const isAdmin = !!admin;
 
   const handleLogout = () => {
     auth.signOut().then(() => {
@@ -48,10 +55,17 @@ export function AppHeader() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{user.displayName || user.email}</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {isAdmin && (
+                <DropdownMenuItem asChild>
+                    <Link href="/admin/dashboard">Admin Panel</Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild>
                 <Link href="/account">Profile</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem disabled>Support</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/rentals">My Rentals</Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
