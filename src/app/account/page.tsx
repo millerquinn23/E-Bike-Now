@@ -68,59 +68,63 @@ export default function AccountPage() {
 
   if (isUserLoading) {
     return (
-      <Card className="m-0 border-0 shadow-none rounded-none">
-        <CardHeader className="px-4 pt-4">
-          <Skeleton className="h-8 w-1/2" />
-          <Skeleton className="h-4 w-3/4" />
-        </CardHeader>
-        <CardContent className="space-y-4 px-4">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        </CardContent>
-        <CardFooter className="px-4">
-          <Skeleton className="h-10 w-28" />
-        </CardFooter>
-      </Card>
+      <div className="p-4">
+        <Card className="m-0 border-0 shadow-none rounded-none">
+          <CardHeader className="px-0">
+            <Skeleton className="h-8 w-1/2" />
+            <Skeleton className="h-4 w-3/4" />
+          </CardHeader>
+          <CardContent className="space-y-4 px-0">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </CardContent>
+          <CardFooter className="px-0">
+            <Skeleton className="h-10 w-28" />
+          </CardFooter>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <Card className="m-0 border-0 shadow-none rounded-none">
-      <CardHeader className="px-4 pt-4">
-        <CardTitle className="font-headline text-2xl">My Profile</CardTitle>
-        <CardDescription>
-          Manage your account settings and personal information.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4 px-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
-          <Input
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" value={email} disabled />
-          <p className="text-xs text-muted-foreground">
-            Email address cannot be changed.
-          </p>
-        </div>
-      </CardContent>
-      <CardFooter className="px-4">
-        <Button onClick={handleSaveChanges} disabled={isSaving}>
-          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Save Changes
-        </Button>
-      </CardFooter>
-    </Card>
+    <div className="p-4">
+      <Card className="m-0 border-0 shadow-none rounded-none">
+        <CardHeader className="px-0 pt-0">
+          <CardTitle className="font-headline text-2xl">My Profile</CardTitle>
+          <CardDescription>
+            Manage your account settings and personal information.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 px-0">
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" value={email} disabled />
+            <p className="text-xs text-muted-foreground">
+              Email address cannot be changed.
+            </p>
+          </div>
+        </CardContent>
+        <CardFooter className="px-0">
+          <Button onClick={handleSaveChanges} disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Save Changes
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }

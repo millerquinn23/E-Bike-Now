@@ -55,7 +55,7 @@ export default function RentalsPage() {
   const isLoadingData = isUserLoading || isLoading;
 
   return (
-    <Card className="m-0 border-0 shadow-none rounded-none">
+    <Card className="m-0 border-0 shadow-none rounded-none h-full">
       <CardHeader className="px-4 pt-4">
         <CardTitle className="font-headline text-2xl">My Rentals</CardTitle>
         <CardDescription>A history of your e-bike journeys.</CardDescription>

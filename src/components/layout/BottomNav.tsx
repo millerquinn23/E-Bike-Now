@@ -2,10 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, History, User, LogOut, Shield, Calculator } from 'lucide-react';
+import { Home, History, User, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuth, useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useAuth } from '@/firebase';
 
 const mainNavLinks = [
   { href: '/dashboard', label: 'Bikes', icon: Home },
@@ -16,33 +15,23 @@ const mainNavLinks = [
 
 export function BottomNav() {
   const pathname = usePathname();
-  const router = useRouter();
-  const auth = useAuth();
-  const { user } = useUser();
-
-
-  const handleLogout = () => {
-    auth.signOut().then(() => {
-      router.push('/login');
-    });
-  };
-
+  
   return (
-    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm h-16 bg-background border-t rounded-b-2xl">
+    <div className="sticky bottom-0 z-50 w-full h-20 bg-background border-t shrink-0">
       <div className="grid h-full grid-cols-4 mx-auto font-medium">
         {mainNavLinks.map((link) => (
           <Link
             key={link.href}
             href={link.href}
             className={cn(
-              'inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group',
+              'inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group pt-2 pb-1',
               pathname.startsWith(link.href)
                 ? 'text-primary'
                 : 'text-muted-foreground'
             )}
           >
-            <link.icon className="w-5 h-5 mb-1" />
-            <span className="text-sm">{link.label}</span>
+            <link.icon className="w-6 h-6 mb-1" />
+            <span className="text-xs">{link.label}</span>
           </Link>
         ))}
       </div>
