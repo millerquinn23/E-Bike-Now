@@ -1,4 +1,9 @@
-import { users } from '@/lib/data';
+'use client';
+import {
+  useCollection,
+  useFirestore,
+  useMemoFirebase,
+} from '@/firebase';
 import type { User } from '@/lib/types';
 import {
   Table,
@@ -9,8 +14,16 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { collection } from 'firebase/firestore';
 
 export default function AdminUsersPage() {
+  const firestore = useFirestore();
+  const usersQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'users') : null),
+    [firestore]
+  );
+  const { data: users } = useCollection<User>(usersQuery);
+
   return (
     <Card>
       <CardHeader>
@@ -26,7 +39,7 @@ export default function AdminUsersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user: User) => (
+            {users?.map((user: User) => (
               <TableRow key={user.uid}>
                 <TableCell className="font-medium">{user.uid}</TableCell>
                 <TableCell>{user.name}</TableCell>

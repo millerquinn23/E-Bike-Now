@@ -1,4 +1,9 @@
-import { rentals } from '@/lib/data';
+'use client';
+import {
+  useCollection,
+  useFirestore,
+  useMemoFirebase,
+} from '@/firebase';
 import type { Rental } from '@/lib/types';
 import {
   Table,
@@ -10,8 +15,16 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
+import { collection } from 'firebase/firestore';
 
 export default function AdminRentalsPage() {
+  const firestore = useFirestore();
+  const rentalsQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'rentals') : null),
+    [firestore]
+  );
+  const { data: rentals } = useCollection<Rental>(rentalsQuery);
+
   return (
     <Card>
       <CardHeader>
@@ -30,14 +43,18 @@ export default function AdminRentalsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rentals.map((rental: Rental) => (
-              <TableRow key={rental.rentalId}>
-                <TableCell className="font-medium">{rental.rentalId}</TableCell>
+            {rentals?.map((rental: Rental) => (
+              <TableRow key={rental.id}>
+                <TableCell className="font-medium">{rental.id}</TableCell>
                 <TableCell>{rental.bikeId}</TableCell>
                 <TableCell>{rental.userId}</TableCell>
-                <TableCell>{format(rental.startTime, 'PPpp')}</TableCell>
                 <TableCell>
-                  {rental.endTime ? format(rental.endTime, 'PPpp') : 'In Progress'}
+                  {rental.startTime && format(rental.startTime.toDate(), 'PPpp')}
+                </TableCell>
+                <TableCell>
+                  {rental.endTime
+                    ? format(rental.endTime.toDate(), 'PPpp')
+                    : 'In Progress'}
                 </TableCell>
                 <TableCell className="text-right">
                   {rental.price != null ? `$${rental.price.toFixed(2)}` : '-'}

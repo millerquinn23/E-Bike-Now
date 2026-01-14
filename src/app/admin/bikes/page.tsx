@@ -1,4 +1,9 @@
-import { bikes } from '@/lib/data';
+'use client';
+import {
+  useCollection,
+  useFirestore,
+  useMemoFirebase,
+} from '@/firebase';
 import type { Bike } from '@/lib/types';
 import {
   Table,
@@ -10,6 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { collection } from 'firebase/firestore';
 
 const statusVariantMap = {
   available: 'outline',
@@ -18,6 +24,13 @@ const statusVariantMap = {
 } as const;
 
 export default function AdminBikesPage() {
+  const firestore = useFirestore();
+  const bikesQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'bikes') : null),
+    [firestore]
+  );
+  const { data: bikes } = useCollection<Bike>(bikesQuery);
+
   return (
     <Card>
       <CardHeader>
@@ -33,11 +46,14 @@ export default function AdminBikesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {bikes.map((bike: Bike) => (
-              <TableRow key={bike.bikeId}>
-                <TableCell className="font-medium">{bike.bikeId}</TableCell>
+            {bikes?.map((bike: Bike) => (
+              <TableRow key={bike.id}>
+                <TableCell className="font-medium">{bike.id}</TableCell>
                 <TableCell>
-                  <Badge variant={statusVariantMap[bike.status] || 'secondary'} className="capitalize">
+                  <Badge
+                    variant={statusVariantMap[bike.status] || 'secondary'}
+                    className="capitalize"
+                  >
                     {bike.status}
                   </Badge>
                 </TableCell>

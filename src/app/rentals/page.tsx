@@ -1,4 +1,11 @@
-import { rentals } from '@/lib/data';
+'use client';
+import {
+  useCollection,
+  useFirestore,
+  useUser,
+  useMemoFirebase,
+} from '@/firebase';
+import { collection } from 'firebase/firestore';
 import type { Rental } from '@/lib/types';
 import {
   Table,
@@ -8,12 +15,44 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { format } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function RentalsPage() {
-  // In a real app, this would be filtered for the current user
-  const userRentals = rentals;
+  const firestore = useFirestore();
+  const { user, isUserLoading } = useUser();
+
+  const rentalsQuery = useMemoFirebase(
+    () =>
+      firestore && user
+        ? collection(firestore, 'users', user.uid, 'rentals')
+        : null,
+    [firestore, user]
+  );
+  const { data: userRentals, isLoading } = useCollection<Rental>(rentalsQuery);
+
+  const calculateCost = (startTime: Date, endTime: Date | null) => {
+    if (!endTime) return 'In Progress';
+    const durationMs = endTime.getTime() - startTime.getTime();
+    const durationHours = durationMs / (1000 * 60 * 60);
+
+    if (durationHours <= 1) {
+      return 'P120.00';
+    }
+
+    const extraHours = Math.ceil(durationHours - 1);
+    const cost = 120 + extraHours * 50;
+    return `P${cost.toFixed(2)}`;
+  };
+
+  const isLoadingData = isUserLoading || isLoading;
 
   return (
     <Card>
@@ -25,30 +64,56 @@ export default function RentalsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Rental ID</TableHead>
               <TableHead>Bike ID</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Price</TableHead>
+              <TableHead>Start Time</TableHead>
+              <TableHead>End Time</TableHead>
+              <TableHead className="text-right">Cost</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {userRentals.length > 0 ? (
-                userRentals.map((rental: Rental) => (
-                    <TableRow key={rental.rentalId}>
-                        <TableCell className="font-medium">{rental.rentalId}</TableCell>
-                        <TableCell>{rental.bikeId}</TableCell>
-                        <TableCell>{format(rental.startTime, 'PP')}</TableCell>
-                        <TableCell className="text-right">
-                        {rental.price != null ? `$${rental.price.toFixed(2)}` : 'In Progress'}
-                        </TableCell>
-                    </TableRow>
-                ))
-            ) : (
-                <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
-                        You have no rental history yet.
-                    </TableCell>
+            {isLoadingData ? (
+              [...Array(3)].map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <Skeleton className="h-4 w-24" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-40" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-40" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="h-4 w-16 ml-auto" />
+                  </TableCell>
                 </TableRow>
+              ))
+            ) : userRentals && userRentals.length > 0 ? (
+              userRentals.map((rental: Rental) => (
+                <TableRow key={rental.id}>
+                  <TableCell className="font-medium">{rental.bikeId}</TableCell>
+                  <TableCell>
+                    {format(rental.startTime.toDate(), 'PPpp')}
+                  </TableCell>
+                  <TableCell>
+                    {rental.endTime
+                      ? format(rental.endTime.toDate(), 'PPpp')
+                      : 'In Progress'}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {calculateCost(
+                      rental.startTime.toDate(),
+                      rental.endTime ? rental.endTime.toDate() : null
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center">
+                  You have no rental history yet.
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>

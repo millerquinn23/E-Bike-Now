@@ -1,15 +1,49 @@
-import { bikes } from '@/lib/data';
+'use client';
 import { BikeCard } from '@/components/bikes/BikeCard';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import type { Bike } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
+  const firestore = useFirestore();
+
+  const bikesQuery = useMemoFirebase(
+    () =>
+      firestore
+        ? query(collection(firestore, 'bikes'), where('status', '==', 'available'))
+        : null,
+    [firestore]
+  );
+  const { data: bikes, isLoading } = useCollection<Bike>(bikesQuery);
+
   return (
     <div>
-      <h1 className="text-3xl font-headline tracking-tight mb-6">Available Bikes</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {bikes.map((bike) => (
-          <BikeCard key={bike.bikeId} bike={bike} />
-        ))}
-      </div>
+      <h1 className="mb-6 font-headline text-3xl tracking-tight">
+        Available Bikes
+      </h1>
+      {isLoading && (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex flex-col space-y-3">
+                    <Skeleton className="h-[125px] w-full rounded-xl" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </div>
+                </div>
+            ))}
+        </div>
+      )}
+      {bikes && bikes.length > 0 ? (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {bikes.map((bike) => (
+            <BikeCard key={bike.id} bike={bike} />
+          ))}
+        </div>
+      ) : (
+        !isLoading && <p>No bikes available at the moment.</p>
+      )}
     </div>
   );
 }

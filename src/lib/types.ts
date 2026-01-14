@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 export type User = {
   uid: string;
   name: string;
@@ -5,22 +7,22 @@ export type User = {
 };
 
 export type Admin = {
-  uid: string;
+  uid:string;
   name: string;
   email: string;
 };
 
 export type Bike = {
-  bikeId: string;
+  id: string;
   status: 'available' | 'rented' | 'locked';
   station: string;
 };
 
 export type Rental = {
-  rentalId: string;
+  id: string;
   bikeId: string;
   userId: string;
-  startTime: Date;
-  endTime: Date | null;
+  startTime: Timestamp;
+  endTime: Timestamp | null;
   price: number | null;
 };
