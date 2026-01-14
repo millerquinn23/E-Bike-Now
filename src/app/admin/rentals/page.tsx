@@ -15,7 +15,14 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
-import { collection } from 'firebase/firestore';
+import { collection, Timestamp } from 'firebase/firestore';
+
+const formatDate = (timestamp: Timestamp | null | undefined) => {
+  if (!timestamp) return 'N/A';
+  // Firestore Timestamps have a toDate() method.
+  return format(timestamp.toDate(), 'PPpp');
+};
+
 
 export default function AdminRentalsPage() {
   const firestore = useFirestore();
@@ -49,12 +56,10 @@ export default function AdminRentalsPage() {
                 <TableCell>{rental.bikeId}</TableCell>
                 <TableCell>{rental.userId}</TableCell>
                 <TableCell>
-                  {rental.startTime && format(rental.startTime.toDate(), 'PPpp')}
+                  {formatDate(rental.startTime)}
                 </TableCell>
                 <TableCell>
-                  {rental.endTime
-                    ? format(rental.endTime.toDate(), 'PPpp')
-                    : 'In Progress'}
+                  {rental.endTime ? formatDate(rental.endTime) : 'In Progress'}
                 </TableCell>
                 <TableCell className="text-right">
                   {rental.price != null ? `$${rental.price.toFixed(2)}` : '-'}

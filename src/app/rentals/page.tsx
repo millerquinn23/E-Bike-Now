@@ -5,7 +5,7 @@ import {
   useUser,
   useMemoFirebase,
 } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import type { Rental } from '@/lib/types';
 import {
   Table,
@@ -32,25 +32,11 @@ export default function RentalsPage() {
   const rentalsQuery = useMemoFirebase(
     () =>
       firestore && user
-        ? collection(firestore, 'users', user.uid, 'rentals')
+        ? query(collection(firestore, 'users', user.uid, 'rentals'), orderBy('startTime', 'desc'))
         : null,
     [firestore, user]
   );
   const { data: userRentals, isLoading } = useCollection<Rental>(rentalsQuery);
-
-  const calculateCost = (startTime: Date, endTime: Date | null) => {
-    if (!endTime) return 'In Progress';
-    const durationMs = endTime.getTime() - startTime.getTime();
-    const durationHours = durationMs / (1000 * 60 * 60);
-
-    if (durationHours <= 1) {
-      return '$2.00';
-    }
-
-    const extraHours = Math.ceil(durationHours - 1);
-    const cost = 2 + extraHours * 1;
-    return `$${cost.toFixed(2)}`;
-  };
 
   const isLoadingData = isUserLoading || isLoading;
 
@@ -65,7 +51,7 @@ export default function RentalsPage() {
           <TableHeader>
             <TableRow>
               <TableHead className="px-4">Bike</TableHead>
-              <TableHead className="px-4">End Time</TableHead>
+              <TableHead className="px-4">Date</TableHead>
               <TableHead className="text-right px-4">Cost</TableHead>
             </TableRow>
           </TableHeader>
@@ -89,12 +75,16 @@ export default function RentalsPage() {
                 <TableRow key={rental.id}>
                   <TableCell className="font-medium px-4">{rental.bikeId}</TableCell>
                   <TableCell className="px-4">
-                    {rental.endTime
-                      ? format(rental.endTime.toDate(), 'P')
-                      : 'In Progress'}
+                    {rental.startTime
+                      ? format(rental.startTime.toDate(), 'P')
+                      : '...'}
                   </TableCell>
                   <TableCell className="text-right px-4">
-                    {rental.price ? `$${rental.price.toFixed(2)}` : 'N/A'}
+                    {rental.endTime
+                      ? rental.price != null
+                        ? `$${rental.price.toFixed(2)}`
+                        : 'N/A'
+                      : 'In Progress'}
                   </TableCell>
                 </TableRow>
               ))
