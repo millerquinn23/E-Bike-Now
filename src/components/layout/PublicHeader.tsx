@@ -81,20 +81,11 @@ export function PublicHeader() {
       );
     }
 
-    return (
-      <div className="hidden md:flex md:gap-2">
-        <Button asChild variant="ghost">
-          <Link href="/login">Login</Link>
-        </Button>
-        <Button asChild>
-          <Link href="/signup">Sign Up</Link>
-        </Button>
-      </div>
-    );
+    return null;
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full rounded-t-xl border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/estimate" className="mr-6 flex items-center space-x-2">
@@ -151,14 +142,14 @@ export function PublicHeader() {
                     {link.label}
                   </Link>
                 ))}
+                 {!user && (
+                  <>
+                    <Link href="/login" className="text-foreground/60 transition-colors hover:text-foreground/80">Login</Link>
+                    <Link href="/signup" className="text-foreground/60 transition-colors hover:text-foreground/80">Sign Up</Link>
+                  </>
+                )}
               </div>
             </div>
-             {!user && (
-                <div className="flex flex-col gap-2 p-4">
-                    <Button asChild variant="default"><Link href="/login">Login</Link></Button>
-                    <Button asChild variant="secondary"><Link href="/signup">Sign Up</Link></Button>
-                </div>
-            )}
           </SheetContent>
         </Sheet>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">

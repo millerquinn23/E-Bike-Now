@@ -2,23 +2,15 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, History, User, LogOut, Shield } from 'lucide-react';
+import { Home, History, User, LogOut, Shield, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '../ui/button';
 
 const mainNavLinks = [
   { href: '/dashboard', label: 'Bikes', icon: Home },
   { href: '/rentals', label: 'My Rentals', icon: History },
+  { href: '/estimate', label: 'Estimate', icon: Calculator },
   { href: '/account', label: 'Account', icon: User },
 ];
 
@@ -26,24 +18,12 @@ export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const auth = useAuth();
-  const firestore = useFirestore();
   const { user } = useUser();
 
-  const adminRoleRef = useMemoFirebase(
-    () => (firestore && user ? doc(firestore, 'roles_admin', user.uid) : null),
-    [firestore, user]
-  );
-  const { data: adminRole } = useDoc(adminRoleRef);
-  const isUserAdmin = !!adminRole;
-
-  const handleLogout = () => {
-    auth.signOut();
-    router.push('/login');
-  };
 
   return (
-    <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t">
-      <div className="grid h-full max-w-lg grid-cols-4 mx-auto font-medium">
+    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm h-16 bg-background border-t rounded-b-2xl">
+      <div className="grid h-full grid-cols-4 mx-auto font-medium">
         {mainNavLinks.map((link) => (
           <Link
             key={link.href}
@@ -59,36 +39,6 @@ export function BottomNav() {
             <span className="text-sm">{link.label}</span>
           </Link>
         ))}
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-             <Button variant="ghost" className="inline-flex flex-col items-center justify-center px-5 h-full rounded-none group text-muted-foreground">
-                <LogOut className="w-5 h-5 mb-1" />
-                <span className="text-sm">More</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top" className="mb-2">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {isUserAdmin && (
-              <DropdownMenuItem asChild>
-                <Link href="/admin/dashboard" className="text-primary font-bold">
-                  <Shield className="mr-2 h-4 w-4" />
-                  Admin Panel
-                </Link>
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem asChild>
-                <Link href="/estimate">Estimate Cost</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled>Support</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </div>
   );
