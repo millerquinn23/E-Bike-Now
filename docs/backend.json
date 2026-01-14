@@ -1,103 +1,223 @@
 {
   "entities": {
-    "UserProfile": {
-      "title": "User Profile",
-      "description": "Represents a user's public profile information.",
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
       "type": "object",
+      "description": "Represents a user in the eBikeNow app.",
       "properties": {
-        "uid": {
+        "id": {
           "type": "string",
-          "description": "The user's unique ID."
+          "description": "Unique identifier for the user.",
+          "format": "uuid"
         },
         "name": {
           "type": "string",
-          "description": "The user's display name."
+          "description": "The user's full name."
         },
         "email": {
           "type": "string",
-          "format": "email",
-          "description": "The user's email address."
+          "description": "The user's email address.",
+          "format": "email"
         }
       },
-      "required": ["uid", "name", "email"]
+      "required": [
+        "id",
+        "name",
+        "email"
+      ]
+    },
+    "Admin": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Admin",
+      "type": "object",
+      "description": "Represents an administrator of the eBikeNow app.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the admin.",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "description": "The admin's full name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The admin's email address.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email"
+      ]
     },
     "Bike": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Bike",
-      "description": "Represents an e-bike available for rent.",
       "type": "object",
+      "description": "Represents an e-bike available for rent.",
       "properties": {
-        "bikeId": {
+        "id": {
           "type": "string",
-          "description": "The unique identifier for the bike."
+          "description": "Unique identifier for the bike."
         },
         "status": {
           "type": "string",
-          "enum": ["available", "rented", "locked"],
-          "description": "The current status of the bike."
+          "description": "The current status of the bike (available, rented, locked).",
+          "format": "enum",
+          "items": {
+            "type": "string"
+          }
         },
         "station": {
           "type": "string",
           "description": "The station where the bike is located."
         }
       },
-      "required": ["bikeId", "status", "station"]
+      "required": [
+        "id",
+        "status",
+        "station"
+      ]
     },
     "Rental": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Rental",
-      "description": "Represents a single rental transaction.",
       "type": "object",
+      "description": "Represents a rental record for an e-bike.",
       "properties": {
-        "rentalId": {
+        "id": {
           "type": "string",
-          "description": "The unique identifier for the rental."
+          "description": "Unique identifier for the rental record."
         },
         "bikeId": {
           "type": "string",
-          "description": "The ID of the rented bike."
+          "description": "Reference to the Bike that was rented. (Relationship: Bike 1:N Rental)"
         },
         "userId": {
           "type": "string",
-          "description": "The ID of the user who rented the bike."
+          "description": "Reference to the User who rented the bike. (Relationship: User 1:N Rental)"
         },
         "startTime": {
           "type": "string",
-          "format": "date-time",
-          "description": "The start time of the rental."
+          "description": "The date and time the rental started.",
+          "format": "date-time"
         },
         "endTime": {
           "type": "string",
-          "format": "date-time",
-          "description": "The end time of the rental."
+          "description": "The date and time the rental ended.  Null if the rental is active.",
+          "format": "date-time"
         },
         "price": {
           "type": "number",
           "description": "The total price of the rental."
         }
       },
-      "required": ["rentalId", "bikeId", "userId", "startTime"]
+      "required": [
+        "id",
+        "bikeId",
+        "userId",
+        "startTime",
+        "price"
+      ]
     }
   },
   "auth": {
-    "providers": ["password"]
+    "providers": [
+      "password",
+      "anonymous"
+    ]
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": {
-        "$ref": "#/entities/UserProfile"
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user information.  Path-based ownership ensures only the user can modify their own document.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user, corresponding to their Firebase Auth UID."
+            }
+          ]
+        }
       },
-      "description": "Stores user profile information."
-    },
-    "/bikes/{bikeId}": {
-      "schema": {
-        "$ref": "#/entities/Bike"
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "Admin",
+          "schema": {
+            "$ref": "#/backend/entities/Admin"
+          },
+          "description": "Documents in this collection denote admin privileges. Existence of a document for a user ID grants admin rights.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user who has admin privileges, corresponding to their Firebase Auth UID."
+            }
+          ]
+        }
       },
-      "description": "Stores information about available bikes."
-    },
-    "/rentals/{rentalId}": {
-      "schema": {
-        "$ref": "#/entities/Rental"
+      {
+        "path": "/bikes/{bikeId}",
+        "definition": {
+          "entityName": "Bike",
+          "schema": {
+            "$ref": "#/backend/entities/Bike"
+          },
+          "description": "Stores information about each bike, including its status and station.",
+          "params": [
+            {
+              "name": "bikeId",
+              "description": "The unique ID of the bike."
+            }
+          ]
+        }
       },
-      "description": "Stores rental transaction records."
-    }
+      {
+        "path": "/rentals/{rentalId}",
+        "definition": {
+          "entityName": "Rental",
+          "schema": {
+            "$ref": "#/backend/entities/Rental"
+          },
+          "description": "Stores rental records. Includes denormalized 'userId' for authorization independence, allowing rules to verify ownership without requiring 'get()' operations.",
+          "params": [
+            {
+              "name": "rentalId",
+              "description": "The unique ID of the rental record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/rentals/{rentalId}",
+        "definition": {
+          "entityName": "Rental",
+          "schema": {
+            "$ref": "#/backend/entities/Rental"
+          },
+          "description": "Stores user specific rentals. This duplicates some data to allow for easy listing of user-specific rentals.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user, corresponding to their Firebase Auth UID."
+            },
+            {
+              "name": "rentalId",
+              "description": "The unique ID of the rental record."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the eBikeNow app, focusing on security, scalability, and ease of querying. It leverages structural segregation and denormalization to ensure authorization independence and to enable efficient and secure data access.  The key collections are `users`, `bikes`, and `rentals`, with a separate `admins` collection for administrative roles.\n\nAuthorization Independence is achieved by:\n\n*   For rentals, the `userId` is stored directly within the `/rentals/{rentalId}` document, enabling rules to verify ownership without needing to perform `get()` operations to the `/users/{userId}` collection.  This allows for atomic creation and updates of rentals.\n\nThe QAPs are supported as follows:\n\n*   **List Bikes (Availability):** The `/bikes` collection allows listing all bikes, and rules can efficiently filter based on the `status` field (available, rented, locked) without complex logic.\n*   **List User Rentals:** The `/users/{userId}/rentals/{rentalId}` structure allows a user to only list rentals under their user ID, ensuring data privacy and security.\n*   **Admin Roles:** The `/roles_admin/{uid}` ensures that only listed admins can modify the bicycles."
   }
 }

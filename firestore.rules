@@ -1,39 +1,179 @@
+/**
+ * This ruleset enforces a security model for the eBikeNow rental application.
+ *
+ * Core Philosophy:
+ * The model provides a mix of public and private access. Bike information is public
+ * for anonymous browsing, while user data and rental history are strictly private.
+ * Administrative privileges, managed via a separate 'roles_admin' collection,
+ * are required for managing the bike inventory.
+ *
+ * Data Structure:
+ * - /users/{userId}: Private user profile data.
+ * - /users/{userId}/rentals/{rentalId}: A denormalized, user-specific copy of their
+ *   rentals, optimized for secure and efficient listing ("My Rentals" screen).
+ * - /bikes/{bikeId}: Publicly readable list of all bikes and their status.
+ * - /rentals/{rentalId}: A master collection of all rental records. This collection
+ *   is used for creating and managing individual rentals but is not listable by clients.
+ * - /roles_admin/{userId}: A lookup collection to grant admin rights. The existence
+ *   of a document here signifies an admin user. This collection is not client-writable.
+ *
+ * Key Security Decisions:
+ * - Admin roles are managed out-of-band (e.g., via the Firebase Console or a trusted
+ *   backend) by making the /roles_admin collection read-only from the client.
+ * - User enumeration is disabled by disallowing list operations on the /users collection.
+ * - Rental data is segregated into two collections: a private, listable subcollection
+ *   (/users/{userId}/rentals) and a non-listable top-level collection (/rentals)
+ *   for transactional writes. This prevents users from listing each other's rentals.
+ *
+ * Denormalization for Authorization:
+ * Each document in the /rentals and /users/{userId}/rentals collections contains a
+ * 'userId' field. This denormalization is critical, as it allows security rules
+ * to verify ownership directly from the document itself without performing costly
+ * and slow `get()` calls to other documents.
+ *
+ * Structural Segregation:
+ * The separation of rental data into a private user subcollection (/users/{userId}/rentals)
+ * and a master top-level collection (/rentals) is a deliberate choice. It provides
+ * a highly secure and performant way for users to list only their own rentals while
+ * allowing the system to manage rental creation in a central location.
+ */
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
-    function isAuth() {
+
+    // -------------------------------------------------------------------------
+    // Helper Functions
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns true if the user is authenticated.
+     */
+    function isSignedIn() {
       return request.auth != null;
     }
 
+    /**
+     * Returns true if the authenticated user's UID matches the provided userId.
+     */
     function isOwner(userId) {
-      return isAuth() && request.auth.uid == userId;
+      return isSignedIn() && request.auth.uid == userId;
     }
 
+    /**
+     * Returns true if the user has an admin role document.
+     */
     function isAdmin() {
-      return isAuth() && request.auth.token.admin == true;
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    // All users can read bikes
-    match /bikes/{bikeId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
+    /**
+     * Returns true if the document being written to already exists.
+     * Used for safe update/delete operations.
+     */
+    function isExistingDocument() {
+      return resource != null;
     }
 
-    // Users can read/write their own profile
+    /**
+     * Returns true if the user is an admin and the document exists.
+     */
+    function isExistingAdmin() {
+      return isAdmin() && isExistingDocument();
+    }
+
+    /**
+     * Returns true if the authenticated user's UID matches the 'userId'
+     * field in the document's data.
+     */
+    function isDocumentOwner(doc) {
+      return isOwner(doc.data.userId);
+    }
+    
+    /**
+     * Returns true if a document exists and its 'userId' field matches the
+     * authenticated user's UID.
+     */
+    function isExistingDocumentOwner(doc) {
+      return isExistingDocument() && isDocumentOwner(doc);
+    }
+
+    // -------------------------------------------------------------------------
+    // Collection Rules
+    // -------------------------------------------------------------------------
+
+    /**
+     * @description Users can create their own profile and manage only their own data.
+     * @path /users/{userId}
+     * @allow (create) a signed-in user with auth.uid 'user123' can create the document /users/user123.
+     * @deny (list) any user attempting to list all documents in the /users collection.
+     * @principle Restricts access to a user's own data tree.
+     */
     match /users/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isOwner(userId) && isExistingDocument() && request.resource.data.id == resource.data.id;
+      allow delete: if isOwner(userId) && isExistingDocument();
+
+      /**
+       * @description A user can manage their own rentals within their own user space.
+       * @path /users/{userId}/rentals/{rentalId}
+       * @allow (list) a user with auth.uid 'user123' can list documents at /users/user123/rentals.
+       * @deny (get) a user with auth.uid 'user456' cannot read /users/user123/rentals/rental_abc.
+       * @principle Enforces data privacy by scoping reads to the authenticated user's path.
+       */
+      match /rentals/{rentalId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isOwner(userId) && isExistingDocument() && request.resource.data.userId == resource.data.userId;
+        allow delete: if isOwner(userId) && isExistingDocument();
+      }
     }
 
-    // Users can read/write their own rentals
+    /**
+     * @description The admin role collection is a lookup table, not client-writable.
+     * @path /roles_admin/{userId}
+     * @allow (none) no client-side operations are permitted.
+     * @deny (create, update, delete) any user attempting to modify their own roles.
+     * @principle Prevents privilege escalation by securing role assignments.
+     */
+    match /roles_admin/{userId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Bike data is public for viewing, but only admins can manage the inventory.
+     * @path /bikes/{bikeId}
+     * @allow (list) any user, including unauthenticated ones, can list all available bikes.
+     * @deny (create) a regular, non-admin user cannot add a new bike to the collection.
+     * @principle Provides public read access while restricting writes to privileged roles.
+     */
+    match /bikes/{bikeId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isAdmin();
+      allow update: if isExistingAdmin();
+      allow delete: if isExistingAdmin();
+    }
+
+    /**
+     * @description The master rentals collection allows users to create their own rentals but not see others'.
+     * @path /rentals/{rentalId}
+     * @allow (create) any signed-in user can create a rental document for themselves.
+     * @deny (list) any user attempting to list documents from this collection to prevent data leakage.
+     * @principle Enforces document ownership for writes and disables listing on mixed-privacy collections.
+     */
     match /rentals/{rentalId} {
-      allow read, write: if (isAuth() && resource.data.userId == request.auth.uid) || isAdmin();
-    }
-
-    // Catch-all for any other collections to ensure admins have access
-    match /{document=**} {
-      allow read, write: if isAdmin();
+      allow get: if isDocumentOwner(resource);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isExistingDocumentOwner(resource) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingDocumentOwner(resource);
     }
   }
 }
