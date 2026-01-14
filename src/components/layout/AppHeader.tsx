@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Bike, Menu, CircleUser } from 'lucide-react';
+import { Bike, Menu, CircleUser, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,8 +14,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '../ui/skeleton';
+import { doc } from 'firebase/firestore';
 
 const navLinks = [
   { href: '/dashboard', label: 'Dashboard' },
@@ -27,7 +28,16 @@ export function AppHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const auth = useAuth();
+  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+
+  const adminRoleRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, 'roles_admin', user.uid) : null),
+    [firestore, user]
+  );
+  const { data: adminRole, isLoading: isAdminLoading } = useDoc(adminRoleRef);
+  const isUserAdmin = !!adminRole;
+
 
   const handleLogout = () => {
     auth.signOut();
@@ -94,7 +104,7 @@ export function AppHeader() {
       </Sheet>
       <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
         <div className="ml-auto flex-1 sm:flex-initial" />
-        {isUserLoading ? (
+        {isUserLoading || (user && isAdminLoading) ? (
           <Skeleton className="h-8 w-8 rounded-full" />
         ) : user ? (
           <DropdownMenu>
@@ -107,6 +117,14 @@ export function AppHeader() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {isUserAdmin && (
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/dashboard" className='text-primary font-bold'>
+                    <Shield className="mr-2 h-4 w-4" />
+                    Admin Panel
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild>
                 <Link href="/account">Profile</Link>
               </DropdownMenuItem>
