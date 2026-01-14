@@ -20,7 +20,7 @@
  * Key Security Decisions:
  * - Admin roles are managed out-of-band (e.g., via the Firebase Console or a trusted
  *   backend) by making the /roles_admin collection read-only from the client.
- * - User enumeration is disabled by disallowing list operations on the /users collection.
+ * - User enumeration is disabled by disallowing list operations on the /users collection for non-admins.
  * - Rental data is segregated into two collections: a private, listable subcollection
  *   (/users/{userId}/rentals) and a non-listable top-level collection (/rentals)
  *   for transactional writes. This prevents users from listing each other's rentals.
@@ -102,15 +102,15 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
 
     /**
-     * @description Users can create their own profile and manage only their own data.
+     * @description Users can create their own profile and manage only their own data. Admins can read all profiles.
      * @path /users/{userId}
      * @allow (create) a signed-in user with auth.uid 'user123' can create the document /users/user123.
-     * @deny (list) any user attempting to list all documents in the /users collection.
-     * @principle Restricts access to a user's own data tree.
+     * @deny (list) any non-admin user attempting to list all documents in the /users collection.
+     * @principle Restricts access to a user's own data tree, but allows admin oversight.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isOwner(userId) && isExistingDocument() && request.resource.data.id == resource.data.id;
       allow delete: if isOwner(userId) && isExistingDocument();
@@ -123,8 +123,8 @@ service cloud.firestore {
        * @principle Enforces data privacy by scoping reads to the authenticated user's path.
        */
       match /rentals/{rentalId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) || isAdmin();
+        allow list: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId) && request.resource.data.userId == userId;
         allow update: if isOwner(userId) && isExistingDocument() && request.resource.data.userId == resource.data.userId;
         allow delete: if isOwner(userId) && isExistingDocument();
@@ -162,20 +162,18 @@ service cloud.firestore {
     }
 
     /**
-     * @description The master rentals collection allows users to create their own rentals but not see others'.
+     * @description The master rentals collection allows users to manage their own rentals but not see others'. Admins can list all.
      * @path /rentals/{rentalId}
      * @allow (create) any signed-in user can create a rental document for themselves.
-     * @deny (list) any user attempting to list documents from this collection to prevent data leakage.
-     * @principle Enforces document ownership for writes and disables listing on mixed-privacy collections.
+     * @deny (list) any non-admin user attempting to list documents from this collection to prevent data leakage.
+     * @principle Enforces document ownership for writes and disables listing for non-admins on mixed-privacy collections.
      */
     match /rentals/{rentalId} {
-      allow get: if isDocumentOwner(resource);
-      allow list: if false;
+      allow get: if isDocumentOwner(resource) || isAdmin();
+      allow list: if isAdmin();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isExistingDocumentOwner(resource) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingDocumentOwner(resource);
+      allow update: if (isExistingDocumentOwner(resource) || isAdmin()) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingDocumentOwner(resource) || isAdmin();
     }
   }
 }
-
-    
