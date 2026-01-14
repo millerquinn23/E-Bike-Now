@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 
 export default function AccountPage() {
   return (
-    <Card>
+    <Card className="m-4">
       <CardHeader>
         <CardTitle className="font-headline text-3xl">My Profile</CardTitle>
         <CardDescription>

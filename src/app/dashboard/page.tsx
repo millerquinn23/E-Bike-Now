@@ -18,7 +18,7 @@ export default function DashboardPage() {
   const { data: bikes, isLoading } = useCollection<Bike>(bikesQuery);
 
   return (
-    <div>
+    <div className="p-4">
       <h1 className="mb-6 font-headline text-3xl tracking-tight">
         Available Bikes
       </h1>

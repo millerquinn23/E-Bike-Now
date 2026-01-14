@@ -119,7 +119,7 @@ export function AppHeader() {
               <DropdownMenuSeparator />
               {isUserAdmin && (
                 <DropdownMenuItem asChild>
-                  <Link href="/admin/dashboard" className='text-primary font-bold'>
+                   <Link href="/admin/dashboard" className='text-primary font-bold'>
                     <Shield className="mr-2 h-4 w-4" />
                     Admin Panel
                   </Link>
