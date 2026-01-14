@@ -1,48 +1,135 @@
 'use client';
-import { BikeCard } from '@/components/bikes/BikeCard';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
-import type { Bike } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
 
-export default function DashboardPage() {
-  const firestore = useFirestore();
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Timer, CircleDollarSign, Lock, Play, Square } from 'lucide-react';
+import { format } from 'date-fns';
 
-  const bikesQuery = useMemoFirebase(
-    () =>
-      firestore
-        ? query(collection(firestore, 'bikes'), where('status', '==', 'available'))
-        : null,
-    [firestore]
+export default function HomePage() {
+  const [rideState, setRideState] = useState<'initial' | 'active' | 'locked'>(
+    'initial'
   );
-  const { data: bikes, isLoading } = useCollection<Bike>(bikesQuery);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [elapsedTime, setElapsedTime] = useState(0); // in seconds
+  const [cost, setCost] = useState(0);
+
+  // Timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (rideState === 'active') {
+      interval = setInterval(() => {
+        setElapsedTime((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [rideState]);
+
+  // Cost calculation effect
+  useEffect(() => {
+    if (rideState === 'active') {
+      // Example cost: P10 base + P2 per minute
+      const minutes = Math.floor(elapsedTime / 60);
+      setCost(10 + minutes * 2);
+    }
+  }, [elapsedTime, rideState]);
+
+  const handleStartRide = () => {
+    setRideState('active');
+    setStartTime(new Date());
+    setElapsedTime(0);
+    setCost(0);
+  };
+
+  const handleEndRide = () => {
+    setRideState('initial');
+    // In a real app, you would handle payment here
+  };
+  
+  const handleToggleLock = () => {
+    setRideState(prevState => prevState === 'locked' ? 'active' : 'locked');
+  }
+
+  const formatDuration = (seconds: number) => {
+    const h = Math.floor(seconds / 3600)
+      .toString()
+      .padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60)
+      .toString()
+      .padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
 
   return (
-    <div className='pb-4'>
-      <h1 className="mb-4 font-headline text-2xl tracking-tight px-4 pt-4">
-        Available Bikes
-      </h1>
-      {isLoading && (
-        <div className="grid grid-cols-1 gap-4 px-4">
-            {[...Array(4)].map((_, i) => (
-                <div key={i} className="flex flex-col space-y-3">
-                    <Skeleton className="h-[125px] w-full rounded-xl" />
-                    <div className="space-y-2">
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                    </div>
-                </div>
-            ))}
-        </div>
-      )}
-      {bikes && bikes.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 px-4">
-          {bikes.map((bike) => (
-            <BikeCard key={bike.id} bike={bike} />
-          ))}
-        </div>
+    <div className="flex h-full flex-col items-center justify-center bg-muted/20 p-4">
+      {rideState === 'initial' ? (
+        <Card className="w-full max-w-sm text-center">
+          <CardHeader>
+            <CardTitle className="font-headline text-2xl">
+              Ready for a ride?
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button size="lg" className="w-full" onClick={handleStartRide}>
+              <Play className="mr-2" />
+              Start Ride
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
-        !isLoading && <p className="px-4">No bikes available at the moment.</p>
+        <div className="flex h-full w-full max-w-sm flex-col justify-between">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="font-headline text-xl">
+                Ride in Progress
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between rounded-lg bg-muted p-3">
+                <div className="flex items-center gap-2 text-lg font-medium">
+                  <Timer className="text-primary" />
+                  <span>Duration</span>
+                </div>
+                <span className="font-mono text-lg font-semibold">
+                  {formatDuration(elapsedTime)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-muted p-3">
+                <div className="flex items-center gap-2 text-lg font-medium">
+                  <CircleDollarSign className="text-primary" />
+                  <span>Current Cost</span>
+                </div>
+                <span className="font-mono text-lg font-semibold">
+                  ${cost.toFixed(2)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+          <div className="grid gap-4">
+            <Button
+              variant={rideState === 'locked' ? 'secondary' : 'outline'}
+              size="lg"
+              onClick={handleToggleLock}
+            >
+              <Lock className="mr-2" />
+              {rideState === 'locked' ? 'Unlock Ride' : 'Simulate Lock'}
+            </Button>
+            <Button
+              variant="destructive"
+              size="lg"
+              onClick={handleEndRide}
+            >
+              <Square className="mr-2" />
+              End Ride &amp; Pay
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

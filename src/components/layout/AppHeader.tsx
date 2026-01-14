@@ -1,8 +1,7 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Bike, Menu, CircleUser, Shield } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Bike, CircleUser } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,32 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
-import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { Skeleton } from '../ui/skeleton';
-import { doc } from 'firebase/firestore';
-
-const navLinks = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/rentals', label: 'My Rentals' },
-  { href: '/estimate', label: 'Estimate' },
-];
+import Link from 'next/link';
 
 export function AppHeader() {
-  const pathname = usePathname();
   const router = useRouter();
   const auth = useAuth();
-  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
-
-  const adminRoleRef = useMemoFirebase(
-    () => (firestore && user ? doc(firestore, 'roles_admin', user.uid) : null),
-    [firestore, user]
-  );
-  const { data: adminRole, isLoading: isAdminLoading } = useDoc(adminRoleRef);
-  const isUserAdmin = !!adminRole;
-
 
   const handleLogout = () => {
     auth.signOut().then(() => {
@@ -47,14 +28,14 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-50 flex h-14 items-center gap-4 border-b bg-background px-4 shrink-0">
-      <div className='flex items-center gap-2'>
+      <div className="flex items-center gap-2">
         <Bike className="h-6 w-6 text-primary" />
         <span className="font-headline text-lg font-semibold">eBikeNow</span>
       </div>
-      
+
       <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
         <div className="ml-auto flex-1 sm:flex-initial" />
-        {isUserLoading || (user && isAdminLoading) ? (
+        {isUserLoading ? (
           <Skeleton className="h-8 w-8 rounded-full" />
         ) : user ? (
           <DropdownMenu>
@@ -65,16 +46,8 @@ export function AppHeader() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>{user.displayName || user.email}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {isUserAdmin && (
-                <DropdownMenuItem asChild>
-                   <Link href="/admin/dashboard" className='text-primary font-bold'>
-                    <Shield className="mr-2 h-4 w-4" />
-                    Admin Panel
-                  </Link>
-                </DropdownMenuItem>
-              )}
               <DropdownMenuItem asChild>
                 <Link href="/account">Profile</Link>
               </DropdownMenuItem>
@@ -84,12 +57,12 @@ export function AppHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-           <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <Button asChild variant="ghost">
-                <Link href="/login">Login</Link>
+              <Link href="/login">Login</Link>
             </Button>
             <Button asChild>
-                <Link href="/signup">Sign Up</Link>
+              <Link href="/signup">Sign Up</Link>
             </Button>
           </div>
         )}

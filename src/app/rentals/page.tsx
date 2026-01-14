@@ -44,12 +44,12 @@ export default function RentalsPage() {
     const durationHours = durationMs / (1000 * 60 * 60);
 
     if (durationHours <= 1) {
-      return 'P120.00';
+      return '$2.00';
     }
 
     const extraHours = Math.ceil(durationHours - 1);
-    const cost = 120 + extraHours * 50;
-    return `P${cost.toFixed(2)}`;
+    const cost = 2 + extraHours * 1;
+    return `$${cost.toFixed(2)}`;
   };
 
   const isLoadingData = isUserLoading || isLoading;
@@ -94,10 +94,7 @@ export default function RentalsPage() {
                       : 'In Progress'}
                   </TableCell>
                   <TableCell className="text-right px-4">
-                    {calculateCost(
-                      rental.startTime.toDate(),
-                      rental.endTime ? rental.endTime.toDate() : null
-                    )}
+                    {rental.price ? `$${rental.price.toFixed(2)}` : 'N/A'}
                   </TableCell>
                 </TableRow>
               ))
